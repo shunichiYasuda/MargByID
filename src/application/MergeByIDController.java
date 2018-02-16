@@ -26,7 +26,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.stage.FileChooser;
 
 public class MergeByIDController {
-	File baseFile, mergeFile,saveFile;
+	File baseFile, mergeFile, saveFile;
 	final ToggleGroup group = new ToggleGroup();
 	String sysEncode;
 	String filePath = null;
@@ -34,6 +34,8 @@ public class MergeByIDController {
 	boolean mergeFileSetFlag = false;
 	String[] baseFieldArray;
 	String[] mergeFieldArray;
+	String baseFieldRecord;
+	String mergeFieldRecord;
 	List<String> baseRecordList = new ArrayList<String>();
 	List<String> mergeRecordList = new ArrayList<String>();
 	@FXML
@@ -79,6 +81,7 @@ public class MergeByIDController {
 					new InputStreamReader(new FileInputStream(baseFile), "JISAutoDetect"));
 			line = br.readLine();
 			baseFieldArray = line.split(",");
+			baseFieldRecord = line;
 			for (String s : baseFieldArray) {
 				baseFieldCombo.getItems().add(s);
 			}
@@ -125,6 +128,7 @@ public class MergeByIDController {
 					new InputStreamReader(new FileInputStream(mergeFile), "JISAutoDetect"));
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
+			mergeFieldRecord = line;
 			for (String s : mergeFieldArray) {
 				mergeFieldCombo.getItems().add(s);
 			}
@@ -148,28 +152,29 @@ public class MergeByIDController {
 
 	@FXML
 	private void mergeAction() {
-		if(!(baseFileSetFlag)) {
+		if (!(baseFileSetFlag)) {
 			showAlert("元帳ファイルが指定されていません.");
 			return;
 		}
-		if(!(mergeFileSetFlag)) {
+		if (!(mergeFileSetFlag)) {
 			showAlert("付加帳ファイルが指定されていません。");
 			return;
 		}
-		String selectedBaseField  = baseFieldCombo.getValue();
-		log.appendText("\n元帳のキーフィールド："+selectedBaseField);
+		String selectedBaseField = baseFieldCombo.getValue();
+		log.appendText("\n元帳のキーフィールド：" + selectedBaseField);
 		String selectedMergeField = mergeFieldCombo.getValue();
-		log.appendText("\n付加帳のキーフィールド："+selectedMergeField);
+		log.appendText("\n付加帳のキーフィールド：" + selectedMergeField);
 		//
-//		addToBaseRButton.setToggleGroup(group);
-//		addToBaseRButton.setSelected(true);
-//		seperateMergeRButton.setToggleGroup(group);
+		// addToBaseRButton.setToggleGroup(group);
+		// addToBaseRButton.setSelected(true);
+		// seperateMergeRButton.setToggleGroup(group);
 		//
 		FileChooser fc = new FileChooser();
-		fc.setInitialDirectory(mergeFile);
+		fc.setInitialDirectory(new File(filePath));
 		saveFile = fc.showSaveDialog(log.getScene().getWindow());
 		try {
-			PrintWriter ps = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
+			PrintWriter ps = new PrintWriter(
+					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -179,20 +184,62 @@ public class MergeByIDController {
 		}
 		//
 		boolean addtoFlag = addToBaseRButton.isSelected();
-		if(addtoFlag) {
+		if (addtoFlag) {
 			addToBaseAction();
-		}else {
+		} else {
 			seperateRecordAction();
 		}
-	} //end of mergeAction()
-	//
+	} // end of mergeAction()
+		//
+
 	private void addToBaseAction() {
-		//元帳に付加する処理
-		
-	}
+		// 元帳に付加する処理
+		// System.out.println("in addToBaseAction()");
+		// 元帳と付加帳で一致するフィールド番号
+		String keyAtBase = baseFieldCombo.getValue();
+		String keyAtMerge = mergeFieldCombo.getValue();
+		int baseKeyPos = hitNumber(baseFieldArray,keyAtBase);	
+		int mergeKeyPos = hitNumber(mergeFieldArray,keyAtMerge);
+		// フィールドの連結
+		// merge フィールドから key 以降の要素についてcsv 形式Stringをつくる
+		String tmpField = "";
+		for (int i = mergeKeyPos + 1; i < mergeFieldArray.length; i++) {
+			tmpField += ("," + mergeFieldArray[i]);
+		}
+		String newField = baseFieldRecord + tmpField;
+		// データレレコードを探して一致すれば連結。そうでなければ空白
+		// 必要な空白の数は key 以降の mergeField の数
+		int spaceNum = mergeFieldArray.length - (mergeKeyPos + 1);
+		for (String s : baseRecordList) {
+			boolean hit = false;
+			// base レコードのこの1行について
+			// いったんレコードを配列へ変更
+			String[] baseRecordArray = s.split(",");
+			// このレコードに於ける key の値
+			String thisKey = baseRecordArray[baseKeyPos];
+			// このキーをmerge のすべてのレコードについてチェック
+			for (String m : mergeRecordList) {
+				String[] mergeRecordArray = m.split(",");
+				String refKey = mergeRecordArray[mergeKeyPos];
+				if (thisKey.equals(refKey)) {
+					hit = true;
+					s = s + "," + m;
+				}
+			} //end of for(String m:mergeRecordList
+			// ヒットしない場合
+			if (!hit) {
+				for (int i = 0; i < spaceNum; i++) {
+					s += ",";
+				}
+			}//end of if(hit しない場合
+		}//end of for(String s:baseRecordList
+
+	}// end of addBaseAction()
+
 	//
 	private void seperateRecordAction() {
-		
+		System.out.println("in seperateRecordAction()");
+
 	}
 
 	//
@@ -213,5 +260,15 @@ public class MergeByIDController {
 		alert.setTitle("ファイルを選択してください");
 		alert.getDialogPane().setContentText(str);
 		alert.showAndWait(); // 表示
+	}
+	//String[] からkeyと一致する場所を返す
+	private int hitNumber(String[] array, String key) {
+		int r = 0;
+		for(int i=0;i<array.length;i++) {
+			if(array[i].equals(key)) {
+				r = i;
+			}
+		}
+		return r;
 	}
 }
