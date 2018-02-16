@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -21,9 +24,12 @@ public class MergeByIDController {
 	final ToggleGroup group = new ToggleGroup();
 	String sysEncode;
 	String filePath = null;
-	boolean fileSetFlag;
+	boolean baseFileSetFlag = false;
+	boolean mergeFileSetFlag = false;
 	String[] baseFieldArray;
 	String[] mergeFieldArray;
+	List<String> baseRecordList = new ArrayList<String>();
+	List<String> mergeRecordList = new ArrayList<String>();
 	@FXML
 	ComboBox<String> baseFieldCombo;
 	@FXML
@@ -44,28 +50,44 @@ public class MergeByIDController {
 	private void openBaseFile() {
 		sysEncode = System.getProperty("file.encoding");
 		FileChooser fc = new FileChooser();
+		if (filePath != null) {
+			fc.setInitialDirectory(new File(filePath));
+		}
 		baseFile = fc.showOpenDialog(log.getScene().getWindow()).getAbsoluteFile();
 		if (baseFile == null) {
 			showAlert("元帳ファイルを選択してください");
 			return;
 		} else {
-			fileSetFlag = false;
+			baseFileSetFlag = true;
 			filePath = baseFile.getParent();
 		}
 		log.appendText("元帳ファイルに" + baseFile.getAbsolutePath() + "がセットされました。");
 		//
 		String line = null;
 		// ファイルを変更したときのために combobox をクリア
-		baseFieldCombo.getItems().clear();
-		mergeFieldCombo.getItems().clear();
+		if (baseFieldCombo != null) {
+			baseFieldCombo.getItems().clear();
+		}
 		try {
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(new FileInputStream(baseFile), "JISAutoDetect"));
-			
+			line = br.readLine();
+			baseFieldArray = line.split(",");
+			for (String s : baseFieldArray) {
+				baseFieldCombo.getItems().add(s);
+			}
+			while ((line = br.readLine()) != null) {
+				baseRecordList.add(line);
+			}
+			//
+			br.close();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -73,6 +95,48 @@ public class MergeByIDController {
 
 	@FXML
 	private void openMergeFile() {
+		FileChooser fc = new FileChooser();
+		if (filePath != null) {
+			fc.setInitialDirectory(new File(filePath));
+		}
+		mergeFile = fc.showOpenDialog(log.getScene().getWindow()).getAbsoluteFile();
+		if (mergeFile == null) {
+			showAlert("付加ファイルを選択してください");
+			return;
+		} else {
+			mergeFileSetFlag = true;
+			filePath = baseFile.getParent();
+		}
+		log.appendText("\n付加帳ファイルに" + mergeFile.getAbsolutePath() + "がセットされました。");
+		String line = null;
+		// ファイルを変更したときのために combobox をクリア
+		if (mergeFieldCombo != null) {
+			mergeFieldCombo.getItems().clear();
+		}
+		//
+		try {
+			BufferedReader br = new BufferedReader(
+					new InputStreamReader(new FileInputStream(mergeFile), "JISAutoDetect"));
+			line = br.readLine();
+			mergeFieldArray = line.split(",");
+			for (String s : mergeFieldArray) {
+				mergeFieldCombo.getItems().add(s);
+			}
+			while ((line = br.readLine()) != null) {
+				mergeRecordList.add(line);
+			}
+			//
+			br.close();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
