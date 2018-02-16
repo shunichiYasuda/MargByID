@@ -1,26 +1,32 @@
 package application;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.FileChooser;
 
 public class MergeByIDController {
-	File baseFile, mergeFile;
+	File baseFile, mergeFile,saveFile;
 	final ToggleGroup group = new ToggleGroup();
 	String sysEncode;
 	String filePath = null;
@@ -37,7 +43,7 @@ public class MergeByIDController {
 	@FXML
 	RadioButton addToBaseRButton;
 	@FXML
-	RadioButton seperateMargeRButton;
+	RadioButton seperateMergeRButton;
 	@FXML
 	TextArea log;
 
@@ -142,7 +148,51 @@ public class MergeByIDController {
 
 	@FXML
 	private void mergeAction() {
-
+		if(!(baseFileSetFlag)) {
+			showAlert("元帳ファイルが指定されていません.");
+			return;
+		}
+		if(!(mergeFileSetFlag)) {
+			showAlert("付加帳ファイルが指定されていません。");
+			return;
+		}
+		String selectedBaseField  = baseFieldCombo.getValue();
+		log.appendText("\n元帳のキーフィールド："+selectedBaseField);
+		String selectedMergeField = mergeFieldCombo.getValue();
+		log.appendText("\n付加帳のキーフィールド："+selectedMergeField);
+		//
+//		addToBaseRButton.setToggleGroup(group);
+//		addToBaseRButton.setSelected(true);
+//		seperateMergeRButton.setToggleGroup(group);
+		//
+		FileChooser fc = new FileChooser();
+		fc.setInitialDirectory(mergeFile);
+		saveFile = fc.showSaveDialog(log.getScene().getWindow());
+		try {
+			PrintWriter ps = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//
+		boolean addtoFlag = addToBaseRButton.isSelected();
+		if(addtoFlag) {
+			addToBaseAction();
+		}else {
+			seperateRecordAction();
+		}
+	} //end of mergeAction()
+	//
+	private void addToBaseAction() {
+		//元帳に付加する処理
+		
+	}
+	//
+	private void seperateRecordAction() {
+		
 	}
 
 	//

@@ -42,7 +42,7 @@
             </ToolBar>
             <ToolBar layoutY="40.0" prefHeight="40.0" prefWidth="600.0">
               <items>
-                  <RadioButton fx:id="addToBaseRButton" mnemonicParsing="false" text="add to Base File">
+                  <RadioButton fx:id="addToBaseRButton" mnemonicParsing="false" selected="true" text="add to Base File">
                      <font>
                         <Font size="14.0" />
                      </font>
@@ -50,7 +50,7 @@
                         <ToggleGroup fx:id="group" />
                      </toggleGroup>
                   </RadioButton>
-                  <RadioButton fx:id="seperateMargeRButton" mnemonicParsing="false" text="Seperate Merged Record" toggleGroup="$group" />
+                  <RadioButton fx:id="seperateMergeRButton" mnemonicParsing="false" text="Seperate Merged Record" toggleGroup="$group" />
               </items>
             </ToolBar>
             <TextArea fx:id="log" layoutY="133.0" prefHeight="268.0" prefWidth="600.0" />
