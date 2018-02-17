@@ -166,19 +166,68 @@ public class MergeByIDController {
 		log.appendText("\n元帳のキーフィールド：" + selectedBaseField);
 		String selectedMergeField = mergeFieldCombo.getValue();
 		log.appendText("\n付加帳のキーフィールド：" + selectedMergeField);
-		//
-		// addToBaseRButton.setToggleGroup(group);
-		// addToBaseRButton.setSelected(true);
-		// seperateMergeRButton.setToggleGroup(group);
-		//
-
-		//
-		boolean addtoFlag = addToBaseRButton.isSelected();
-		if (addtoFlag) {
-			addToBaseAction();
-		} else {
-			seperateRecordAction();
+		// radioButton のどれが選択されているかにかかわらず必要な処理
+		// 元帳と付加帳で一致するフィールド番号
+		String keyAtBase = baseFieldCombo.getValue();
+		String keyAtMerge = mergeFieldCombo.getValue();
+		int baseKeyPos = hitNumber(baseFieldArray, keyAtBase);
+		int mergeKeyPos = hitNumber(mergeFieldArray, keyAtMerge);
+		// フィールドの連結
+		// merge フィールドから key 以降の要素についてcsv 形式Stringをつくる
+		String tmpField = "";
+		for (int i = mergeKeyPos + 1; i < mergeFieldArray.length; i++) {
+			tmpField += ("," + mergeFieldArray[i]);
 		}
+		String newField = baseFieldRecord + tmpField;
+		// 書き出し用の String List をつくる
+		List<String> writeStringList = new ArrayList<String>();
+		// フィールドはどちらにせよ必要
+		writeStringList.add(newField);
+		// データレレコードを探して一致すれば連結。
+		// 元帳に付加する場合は、そうでなければ空白
+		// 必要な空白の数は key 以降の mergeField の数
+		int spaceNum = mergeFieldArray.length - (mergeKeyPos + 1);
+		// ここから処理を分ける
+		boolean addtoFlag = addToBaseRButton.isSelected();
+		for (String s : baseRecordList) {
+			boolean hit = false;
+			// base レコードのこの1行についてチェックする
+			// いったんレコードを配列へ変更
+			String[] baseRecordArray = s.split(",");
+			// このレコードに於ける key の値
+			String thisKey = baseRecordArray[baseKeyPos];
+			// このキーをmerge のすべてのレコードについてチェック
+			for (String m : mergeRecordList) {
+				String[] mergeRecordArray = m.split(",");
+				String refKey = mergeRecordArray[mergeKeyPos];
+				// System.out.println(cutM);
+				if (thisKey.equals(refKey)) {
+					// mergeKeyPos 以外の refRecordを文字列に。
+					String cutM = cutString(mergeRecordArray, mergeKeyPos);
+					hit = true;
+					s = s + cutM;
+					if (!addtoFlag) {
+						writeStringList.add(s);
+					}
+				}
+			} // end of for(String m:mergeRecordList
+			if (addtoFlag) { // 元帳にくっつける場合はヒットしないレコードの処理が必要
+				if (!hit) {
+					for (int i = 0; i < spaceNum; i++) {
+						s = s + ",";
+					}
+				} // end of if(hit しない場合
+					// 書き出し用のリストに編集した文字列を入れる。
+				writeStringList.add(s);
+			}
+		} // end of for(String s:baseRecordList
+			// 書き出す
+		writeString(writeStringList);
+		// if (addtoFlag) {
+		// addToBaseAction();
+		// } else {
+		// seperateRecordAction();
+		// }
 	} // end of mergeAction()
 		//
 
@@ -223,7 +272,7 @@ public class MergeByIDController {
 					String cutM = cutString(mergeRecordArray, mergeKeyPos);
 					hit = true;
 					s = s + cutM;
-					System.out.println("hit:" + thisKey + "<=>" + refKey);
+					// System.out.println("hit:" + thisKey + "<=>" + refKey);
 
 				}
 			} // end of for(String m:mergeRecordList
@@ -232,12 +281,12 @@ public class MergeByIDController {
 				for (int i = 0; i < spaceNum; i++) {
 					s = s + ",";
 				}
-				System.out.println("s:" + s);
+				// System.out.println("s:" + s);
 			} // end of if(hit しない場合
-			//書き出し用のリストに編集した文字列を入れる。
+				// 書き出し用のリストに編集した文字列を入れる。
 			writeStringList.add(s);
 		} // end of for(String s:baseRecordList
-		// 書き出す
+			// 書き出す
 		writeString(writeStringList);
 	}// end of addBaseAction()
 
