@@ -169,19 +169,7 @@ public class MergeByIDController {
 		// addToBaseRButton.setSelected(true);
 		// seperateMergeRButton.setToggleGroup(group);
 		//
-		FileChooser fc = new FileChooser();
-		fc.setInitialDirectory(new File(filePath));
-		saveFile = fc.showSaveDialog(log.getScene().getWindow());
-		try {
-			PrintWriter ps = new PrintWriter(
-					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		//
 		boolean addtoFlag = addToBaseRButton.isSelected();
 		if (addtoFlag) {
@@ -200,6 +188,7 @@ public class MergeByIDController {
 		String keyAtMerge = mergeFieldCombo.getValue();
 		int baseKeyPos = hitNumber(baseFieldArray,keyAtBase);	
 		int mergeKeyPos = hitNumber(mergeFieldArray,keyAtMerge);
+		System.out.println("baseKeyPos="+baseKeyPos+"\tmergeKeyPos="+mergeKeyPos);
 		// フィールドの連結
 		// merge フィールドから key 以降の要素についてcsv 形式Stringをつくる
 		String tmpField = "";
@@ -210,6 +199,7 @@ public class MergeByIDController {
 		// データレレコードを探して一致すれば連結。そうでなければ空白
 		// 必要な空白の数は key 以降の mergeField の数
 		int spaceNum = mergeFieldArray.length - (mergeKeyPos + 1);
+		System.out.println("空白数="+spaceNum);
 		for (String s : baseRecordList) {
 			boolean hit = false;
 			// base レコードのこの1行について
@@ -233,7 +223,16 @@ public class MergeByIDController {
 				}
 			}//end of if(hit しない場合
 		}//end of for(String s:baseRecordList
-
+		//書き出し用の String List をつくる
+		List <String> writeStringList = new ArrayList<String>();
+		//まず、フィールド
+		writeStringList.add(newField);
+		//baseRecordListをコピー
+		for(String s: baseRecordList) {
+			writeStringList.add(s);
+		}
+		//書き出す
+		writeString(writeStringList);
 	}// end of addBaseAction()
 
 	//
@@ -270,5 +269,27 @@ public class MergeByIDController {
 			}
 		}
 		return r;
+	}
+	//ファイルに書き出すメソッド
+	private void writeString(List<String>str ) {
+		FileChooser fc = new FileChooser();
+		fc.setInitialDirectory(new File(filePath));
+		saveFile = fc.showSaveDialog(log.getScene().getWindow());
+		try {
+			PrintWriter ps = new PrintWriter(
+					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
+			for(String s:str) {
+				ps.println(s);
+			}
+			ps.close();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//
+		
 	}
 }
