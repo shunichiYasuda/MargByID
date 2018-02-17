@@ -61,6 +61,7 @@ public class MergeByIDController {
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
 		}
+		fc.setTitle("元帳ファイルを指定してください");
 		baseFile = fc.showOpenDialog(log.getScene().getWindow()).getAbsoluteFile();
 		if (baseFile == null) {
 			showAlert("元帳ファイルを選択してください");
@@ -108,6 +109,7 @@ public class MergeByIDController {
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
 		}
+		fc.setTitle("付加帳ファイルを指定してください。");
 		mergeFile = fc.showOpenDialog(log.getScene().getWindow()).getAbsoluteFile();
 		if (mergeFile == null) {
 			showAlert("付加ファイルを選択してください");
@@ -169,7 +171,7 @@ public class MergeByIDController {
 		// addToBaseRButton.setSelected(true);
 		// seperateMergeRButton.setToggleGroup(group);
 		//
-		
+
 		//
 		boolean addtoFlag = addToBaseRButton.isSelected();
 		if (addtoFlag) {
@@ -186,9 +188,9 @@ public class MergeByIDController {
 		// 元帳と付加帳で一致するフィールド番号
 		String keyAtBase = baseFieldCombo.getValue();
 		String keyAtMerge = mergeFieldCombo.getValue();
-		int baseKeyPos = hitNumber(baseFieldArray,keyAtBase);	
-		int mergeKeyPos = hitNumber(mergeFieldArray,keyAtMerge);
-		System.out.println("baseKeyPos="+baseKeyPos+"\tmergeKeyPos="+mergeKeyPos);
+		int baseKeyPos = hitNumber(baseFieldArray, keyAtBase);
+		int mergeKeyPos = hitNumber(mergeFieldArray, keyAtMerge);
+		// System.out.println("baseKeyPos="+baseKeyPos+"\tmergeKeyPos="+mergeKeyPos);
 		// フィールドの連結
 		// merge フィールドから key 以降の要素についてcsv 形式Stringをつくる
 		String tmpField = "";
@@ -196,10 +198,14 @@ public class MergeByIDController {
 			tmpField += ("," + mergeFieldArray[i]);
 		}
 		String newField = baseFieldRecord + tmpField;
+		// 書き出し用の String List をつくる
+		List<String> writeStringList = new ArrayList<String>();
+		// まず、フィールド
+		writeStringList.add(newField);
 		// データレレコードを探して一致すれば連結。そうでなければ空白
 		// 必要な空白の数は key 以降の mergeField の数
 		int spaceNum = mergeFieldArray.length - (mergeKeyPos + 1);
-		System.out.println("空白数="+spaceNum);
+		// System.out.println("空白数="+spaceNum);
 		for (String s : baseRecordList) {
 			boolean hit = false;
 			// base レコードのこの1行について
@@ -211,27 +217,27 @@ public class MergeByIDController {
 			for (String m : mergeRecordList) {
 				String[] mergeRecordArray = m.split(",");
 				String refKey = mergeRecordArray[mergeKeyPos];
+				// System.out.println(cutM);
 				if (thisKey.equals(refKey)) {
+					// mergeKeyPos 以外の refRecordを文字列に。
+					String cutM = cutString(mergeRecordArray, mergeKeyPos);
 					hit = true;
-					s = s + "," + m;
+					s = s + cutM;
+					System.out.println("hit:" + thisKey + "<=>" + refKey);
+
 				}
-			} //end of for(String m:mergeRecordList
-			// ヒットしない場合
+			} // end of for(String m:mergeRecordList
+				// ヒットしない場合
 			if (!hit) {
 				for (int i = 0; i < spaceNum; i++) {
-					s += ",";
+					s = s + ",";
 				}
-			}//end of if(hit しない場合
-		}//end of for(String s:baseRecordList
-		//書き出し用の String List をつくる
-		List <String> writeStringList = new ArrayList<String>();
-		//まず、フィールド
-		writeStringList.add(newField);
-		//baseRecordListをコピー
-		for(String s: baseRecordList) {
+				System.out.println("s:" + s);
+			} // end of if(hit しない場合
+			//書き出し用のリストに編集した文字列を入れる。
 			writeStringList.add(s);
-		}
-		//書き出す
+		} // end of for(String s:baseRecordList
+		// 書き出す
 		writeString(writeStringList);
 	}// end of addBaseAction()
 
@@ -260,25 +266,27 @@ public class MergeByIDController {
 		alert.getDialogPane().setContentText(str);
 		alert.showAndWait(); // 表示
 	}
-	//String[] からkeyと一致する場所を返す
+
+	// String[] からkeyと一致する場所を返す
 	private int hitNumber(String[] array, String key) {
 		int r = 0;
-		for(int i=0;i<array.length;i++) {
-			if(array[i].equals(key)) {
+		for (int i = 0; i < array.length; i++) {
+			if (array[i].equals(key)) {
 				r = i;
 			}
 		}
 		return r;
 	}
-	//ファイルに書き出すメソッド
-	private void writeString(List<String>str ) {
+
+	// ファイルに書き出すメソッド
+	private void writeString(List<String> str) {
 		FileChooser fc = new FileChooser();
 		fc.setInitialDirectory(new File(filePath));
 		saveFile = fc.showSaveDialog(log.getScene().getWindow());
 		try {
 			PrintWriter ps = new PrintWriter(
 					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
-			for(String s:str) {
+			for (String s : str) {
 				ps.println(s);
 			}
 			ps.close();
@@ -289,7 +297,25 @@ public class MergeByIDController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//
-		
+	}
+
+	//
+	private String cutString(String[] array, int n) {
+		if (array.length == 1) {
+			showAlert("レコードにフィールドが一つしかありません。確認してください");
+			return "";
+		}
+		String[] tmpArray = new String[array.length - 1];
+		for (int i = 0; i < n; i++) {
+			tmpArray[i] = array[i];
+		}
+		for (int i = (n + 1); i < array.length; i++) {
+			tmpArray[i - 1] = array[i];
+		}
+		String r = "";
+		for (String s : tmpArray) {
+			r += ("," + s);
+		}
+		return r;
 	}
 }
