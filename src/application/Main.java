@@ -14,6 +14,7 @@ public class Main extends Application {
 			AnchorPane root = (AnchorPane)FXMLLoader.load(getClass().getResource("MergeByID.fxml"));
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			primaryStage.setTitle("MergeByID ver.1.0");
 			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {
