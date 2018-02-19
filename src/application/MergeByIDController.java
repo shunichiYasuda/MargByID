@@ -338,6 +338,8 @@ public class MergeByIDController {
 			for (String s : str) {
 				ps.println(s);
 			}
+			//
+			log.appendText("\n結果ファイル："+saveFile.getAbsolutePath());
 			ps.close();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
