@@ -14,13 +14,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.FileChooser;
@@ -230,83 +228,6 @@ public class MergeByIDController {
 		// }
 	} // end of mergeAction()
 		//
-
-	private void addToBaseAction() {
-		// 元帳に付加する処理
-		// System.out.println("in addToBaseAction()");
-		// 元帳と付加帳で一致するフィールド番号
-		String keyAtBase = baseFieldCombo.getValue();
-		String keyAtMerge = mergeFieldCombo.getValue();
-		int baseKeyPos = hitNumber(baseFieldArray, keyAtBase);
-		int mergeKeyPos = hitNumber(mergeFieldArray, keyAtMerge);
-		// System.out.println("baseKeyPos="+baseKeyPos+"\tmergeKeyPos="+mergeKeyPos);
-		// フィールドの連結
-		// merge フィールドから key 以降の要素についてcsv 形式Stringをつくる
-		String tmpField = "";
-		for (int i = mergeKeyPos + 1; i < mergeFieldArray.length; i++) {
-			tmpField += ("," + mergeFieldArray[i]);
-		}
-		String newField = baseFieldRecord + tmpField;
-		// 書き出し用の String List をつくる
-		List<String> writeStringList = new ArrayList<String>();
-		// まず、フィールド
-		writeStringList.add(newField);
-		// データレレコードを探して一致すれば連結。そうでなければ空白
-		// 必要な空白の数は key 以降の mergeField の数
-		int spaceNum = mergeFieldArray.length - (mergeKeyPos + 1);
-		// System.out.println("空白数="+spaceNum);
-		for (String s : baseRecordList) {
-			boolean hit = false;
-			// base レコードのこの1行について
-			// いったんレコードを配列へ変更
-			String[] baseRecordArray = s.split(",");
-			// このレコードに於ける key の値
-			String thisKey = baseRecordArray[baseKeyPos];
-			// このキーをmerge のすべてのレコードについてチェック
-			for (String m : mergeRecordList) {
-				String[] mergeRecordArray = m.split(",");
-				String refKey = mergeRecordArray[mergeKeyPos];
-				// System.out.println(cutM);
-				if (thisKey.equals(refKey)) {
-					// mergeKeyPos 以外の refRecordを文字列に。
-					String cutM = cutString(mergeRecordArray, mergeKeyPos);
-					hit = true;
-					s = s + cutM;
-					// System.out.println("hit:" + thisKey + "<=>" + refKey);
-
-				}
-			} // end of for(String m:mergeRecordList
-				// ヒットしない場合
-			if (!hit) {
-				for (int i = 0; i < spaceNum; i++) {
-					s = s + ",";
-				}
-				// System.out.println("s:" + s);
-			} // end of if(hit しない場合
-				// 書き出し用のリストに編集した文字列を入れる。
-			writeStringList.add(s);
-		} // end of for(String s:baseRecordList
-			// 書き出す
-		writeString(writeStringList);
-	}// end of addBaseAction()
-
-	//
-	private void seperateRecordAction() {
-		System.out.println("in seperateRecordAction()");
-
-	}
-
-	//
-	//
-	private String getPreffix(String fileName) {
-		if (fileName == null)
-			return null;
-		int point = fileName.lastIndexOf(".");
-		if (point != -1) {
-			return fileName.substring(0, point);
-		}
-		return fileName;
-	}
 
 	// アラート
 	private void showAlert(String str) {
