@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,12 +127,16 @@ public class MergeByIDController {
 		//
 		try {
 			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(mergeFile), "JISAutoDetect"));
+					new InputStreamReader(new FileInputStream(mergeFile), sysEncode));
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
 			mergeFieldRecord = line;
+			System.out.println(sysEncode);
 			for (String s : mergeFieldArray) {
-				mergeFieldCombo.getItems().add(s);
+				byte[] b = s.getBytes();
+				String newStr = new String(b,StandardCharsets.UTF_8);
+				System.out.println(newStr);
+				mergeFieldCombo.getItems().add(newStr);
 			}
 			while ((line = br.readLine()) != null) {
 				mergeRecordList.add(line);
@@ -260,7 +266,7 @@ public class MergeByIDController {
 				ps.println(s);
 			}
 			//
-			log.appendText("\n結果ファイル："+saveFile.getAbsolutePath());
+			log.appendText("\n結果ファイル：" + saveFile.getAbsolutePath());
 			ps.close();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
