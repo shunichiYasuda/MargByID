@@ -131,12 +131,8 @@ public class MergeByIDController {
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
 			mergeFieldRecord = line;
-			System.out.println(sysEncode);
 			for (String s : mergeFieldArray) {
-				byte[] b = s.getBytes();
-				String newStr = new String(b,StandardCharsets.UTF_8);
-				System.out.println(newStr);
-				mergeFieldCombo.getItems().add(newStr);
+				mergeFieldCombo.getItems().add(s);
 			}
 			while ((line = br.readLine()) != null) {
 				mergeRecordList.add(line);
@@ -181,8 +177,13 @@ public class MergeByIDController {
 		String tmpField = "";
 		for (int i = mergeKeyPos + 1; i < mergeFieldArray.length; i++) {
 			tmpField += ("," + mergeFieldArray[i]);
+			//to check
+//			System.out.println("mergeKeyPos+1="+i);
+//			System.out.println("field name="+mergeFieldArray[i]);
 		}
 		String newField = baseFieldRecord + tmpField;
+		System.out.println(newField);
+	
 		// 書き出し用の String List をつくる
 		List<String> writeStringList = new ArrayList<String>();
 		// フィールドはどちらにせよ必要
@@ -204,11 +205,12 @@ public class MergeByIDController {
 			for (String m : mergeRecordList) {
 				String[] mergeRecordArray = m.split(",");
 				String refKey = mergeRecordArray[mergeKeyPos];
-				// System.out.println(cutM);
+				
 				if (thisKey.equals(refKey)) {
-					// mergeKeyPos 以外の refRecordを文字列に。
-					String cutM = cutString(mergeRecordArray, mergeKeyPos);
+					// mergeKeyPos 以降の refRecordを文字列に。
+					String cutM = cutStringV2(mergeRecordArray, mergeKeyPos);
 					hit = true;
+					System.out.println(cutM);
 					s = s + cutM;
 					if (!addtoFlag) {
 						writeStringList.add(s);
@@ -277,7 +279,7 @@ public class MergeByIDController {
 		}
 	}
 
-	//
+	//merge レコードの key field だけをカットする。
 	private String cutString(String[] array, int n) {
 		if (array.length == 1) {
 			showAlert("レコードにフィールドが一つしかありません。確認してください");
@@ -290,6 +292,25 @@ public class MergeByIDController {
 		for (int i = (n + 1); i < array.length; i++) {
 			tmpArray[i - 1] = array[i];
 		}
+		String r = "";
+		for (String s : tmpArray) {
+			r += ("," + s);
+		}
+		return r;
+	}
+	//merge レコードの key field を含めてそれより前をカットする
+	private String cutStringV2(String[] array, int n) {
+		if (array.length == 1) {
+			showAlert("レコードにフィールドが一つしかありません。確認してください");
+			return "";
+		}
+		String[] tmpArray = new String[array.length - (n+1)];
+		for (int i = 0; i < tmpArray.length; i++) {
+			tmpArray[i] = array[n+1+i];
+		}
+//		for (int i = (n + 1); i < array.length; i++) {
+//			tmpArray[i - 1] = array[i];
+//		}
 		String r = "";
 		for (String s : tmpArray) {
 			r += ("," + s);
