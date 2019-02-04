@@ -11,8 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +54,7 @@ public class MergeByIDController {
 
 	@FXML
 	private void openBaseFile() {
-		sysEncode = System.getProperty("file.encoding");
+		//sysEncode = System.getProperty("file.encoding");
 		FileChooser fc = new FileChooser();
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
@@ -127,7 +125,7 @@ public class MergeByIDController {
 		//
 		try {
 			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(mergeFile), sysEncode));
+					new InputStreamReader(new FileInputStream(mergeFile), "JISAutoDetect"));
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
 			mergeFieldRecord = line;
@@ -263,41 +261,19 @@ public class MergeByIDController {
 		saveFile = fc.showSaveDialog(log.getScene().getWindow());
 		try {
 			PrintWriter ps = new PrintWriter(
-					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile), sysEncode)));
+					new BufferedWriter(new OutputStreamWriter(new FileOutputStream(saveFile))));
 			for (String s : str) {
 				ps.println(s);
 			}
 			//
 			log.appendText("\n結果ファイル：" + saveFile.getAbsolutePath());
 			ps.close();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	//merge レコードの key field だけをカットする。
-	private String cutString(String[] array, int n) {
-		if (array.length == 1) {
-			showAlert("レコードにフィールドが一つしかありません。確認してください");
-			return "";
-		}
-		String[] tmpArray = new String[array.length - 1];
-		for (int i = 0; i < n; i++) {
-			tmpArray[i] = array[i];
-		}
-		for (int i = (n + 1); i < array.length; i++) {
-			tmpArray[i - 1] = array[i];
-		}
-		String r = "";
-		for (String s : tmpArray) {
-			r += ("," + s);
-		}
-		return r;
-	}
 	//merge レコードの key field を含めてそれより前をカットする
 	private String cutStringV2(String[] array, int n) {
 		if (array.length == 1) {
