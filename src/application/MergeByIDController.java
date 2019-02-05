@@ -27,7 +27,7 @@ public class MergeByIDController {
 	File baseFile, mergeFile, saveFile;
 	final ToggleGroup group = new ToggleGroup();
 	String sysEncode;
-	String filePath = null;
+	String filePath = "./";
 	boolean baseFileSetFlag = false;
 	boolean mergeFileSetFlag = false;
 	String[] baseFieldArray;
@@ -54,6 +54,17 @@ public class MergeByIDController {
 
 	@FXML
 	private void openBaseFile() {
+		//open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
+		if(baseFileSetFlag==true) {
+			//System.out.println("File has set.");
+			baseFieldCombo.getItems().clear();
+			for(int i=0;i<baseFieldArray.length;i++) {
+				baseFieldArray[i] = null;
+			}
+			baseRecordList.clear();
+		}else {
+			//System.out.println("File hasn't set yet");
+		}
 		//sysEncode = System.getProperty("file.encoding");
 		FileChooser fc = new FileChooser();
 		if (filePath != null) {
@@ -71,15 +82,13 @@ public class MergeByIDController {
 		log.appendText("元帳ファイルに" + baseFile.getAbsolutePath() + "がセットされました。");
 		//
 		String line = null;
-		// ファイルを変更したときのために combobox をクリア
-		if (baseFieldCombo != null) {
-			baseFieldCombo.getItems().clear();
-		}
 		try {
 			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(baseFile), "JISAutoDetect"));
+					new InputStreamReader(new FileInputStream(baseFile)));
 			line = br.readLine();
 			baseFieldArray = line.split(",");
+			//
+			//System.out.println("baseFieldArray.length="+baseFieldArray.length);
 			baseFieldRecord = line;
 			for (String s : baseFieldArray) {
 				baseFieldCombo.getItems().add(s);
@@ -103,6 +112,17 @@ public class MergeByIDController {
 
 	@FXML
 	private void openMergeFile() {
+		//open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
+				if(mergeFileSetFlag==true) {
+					//System.out.println("File has set.");
+					mergeFieldCombo.getItems().clear();
+					for(int i=0;i<mergeFieldArray.length;i++) {
+						mergeFieldArray[i] = null;
+					}
+					mergeRecordList.clear();
+				}else {
+					//System.out.println("File hasn't set yet");
+				}
 		FileChooser fc = new FileChooser();
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
@@ -118,14 +138,10 @@ public class MergeByIDController {
 		}
 		log.appendText("\n付加帳ファイルに" + mergeFile.getAbsolutePath() + "がセットされました。");
 		String line = null;
-		// ファイルを変更したときのために combobox をクリア
-		if (mergeFieldCombo != null) {
-			mergeFieldCombo.getItems().clear();
-		}
 		//
 		try {
 			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(mergeFile), "JISAutoDetect"));
+					new InputStreamReader(new FileInputStream(mergeFile)));
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
 			mergeFieldRecord = line;
@@ -180,7 +196,7 @@ public class MergeByIDController {
 //			System.out.println("field name="+mergeFieldArray[i]);
 		}
 		String newField = baseFieldRecord + tmpField;
-		System.out.println(newField);
+		//System.out.println(newField);
 	
 		// 書き出し用の String List をつくる
 		List<String> writeStringList = new ArrayList<String>();
@@ -208,7 +224,7 @@ public class MergeByIDController {
 					// mergeKeyPos 以降の refRecordを文字列に。
 					String cutM = cutStringV2(mergeRecordArray, mergeKeyPos);
 					hit = true;
-					System.out.println(cutM);
+					//System.out.println(cutM);
 					s = s + cutM;
 					if (!addtoFlag) {
 						writeStringList.add(s);
