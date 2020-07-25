@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mozilla.universalchardet.UniversalDetector;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
@@ -27,6 +29,7 @@ public class MergeByIDController {
 	File baseFile, mergeFile, saveFile;
 	final ToggleGroup group = new ToggleGroup();
 	String sysEncode;
+	String encode;
 	String filePath = "./";
 	boolean baseFileSetFlag = false;
 	boolean mergeFileSetFlag = false;
@@ -54,21 +57,23 @@ public class MergeByIDController {
 
 	@FXML
 	private void openBaseFile() {
-		//open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
-		if(baseFileSetFlag==true) {
-			//System.out.println("File has set.");
+		// open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
+		if (baseFileSetFlag == true) {
+			// System.out.println("File has set.");
 			baseFieldCombo.getItems().clear();
-			for(int i=0;i<baseFieldArray.length;i++) {
+			for (int i = 0; i < baseFieldArray.length; i++) {
 				baseFieldArray[i] = null;
 			}
 			baseRecordList.clear();
-		}else {
-			//System.out.println("File hasn't set yet");
+		} else {
+			// System.out.println("File hasn't set yet");
 		}
-		//sysEncode = System.getProperty("file.encoding");
+		sysEncode = System.getProperty("file.encoding");
 		FileChooser fc = new FileChooser();
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
+		} else {
+			fc.setInitialDirectory(new File("."));
 		}
 		fc.setTitle("元帳ファイルを指定してください");
 		baseFile = fc.showOpenDialog(log.getScene().getWindow()).getAbsoluteFile();
@@ -81,14 +86,23 @@ public class MergeByIDController {
 		}
 		log.appendText("元帳ファイルに" + baseFile.getAbsolutePath() + "がセットされました。");
 		//
+		// 文字コード判別
+		try {
+			encode = detectEncoding(baseFile);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (encode == null) {
+			encode = sysEncode;
+		}
 		String line = null;
 		try {
-			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(baseFile)));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(baseFile)));
 			line = br.readLine();
 			baseFieldArray = line.split(",");
 			//
-			//System.out.println("baseFieldArray.length="+baseFieldArray.length);
+			// System.out.println("baseFieldArray.length="+baseFieldArray.length);
 			baseFieldRecord = line;
 			for (String s : baseFieldArray) {
 				baseFieldCombo.getItems().add(s);
@@ -112,17 +126,17 @@ public class MergeByIDController {
 
 	@FXML
 	private void openMergeFile() {
-		//open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
-				if(mergeFileSetFlag==true) {
-					//System.out.println("File has set.");
-					mergeFieldCombo.getItems().clear();
-					for(int i=0;i<mergeFieldArray.length;i++) {
-						mergeFieldArray[i] = null;
-					}
-					mergeRecordList.clear();
-				}else {
-					//System.out.println("File hasn't set yet");
-				}
+		// open ボタンが押されたときにすでにファイルがセットされている＝以前にセットしている場合
+		if (mergeFileSetFlag == true) {
+			// System.out.println("File has set.");
+			mergeFieldCombo.getItems().clear();
+			for (int i = 0; i < mergeFieldArray.length; i++) {
+				mergeFieldArray[i] = null;
+			}
+			mergeRecordList.clear();
+		} else {
+			// System.out.println("File hasn't set yet");
+		}
 		FileChooser fc = new FileChooser();
 		if (filePath != null) {
 			fc.setInitialDirectory(new File(filePath));
@@ -140,8 +154,7 @@ public class MergeByIDController {
 		String line = null;
 		//
 		try {
-			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(mergeFile)));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mergeFile)));
 			line = br.readLine();
 			mergeFieldArray = line.split(",");
 			mergeFieldRecord = line;
@@ -191,13 +204,13 @@ public class MergeByIDController {
 		String tmpField = "";
 		for (int i = mergeKeyPos + 1; i < mergeFieldArray.length; i++) {
 			tmpField += ("," + mergeFieldArray[i]);
-			//to check
+			// to check
 //			System.out.println("mergeKeyPos+1="+i);
 //			System.out.println("field name="+mergeFieldArray[i]);
 		}
 		String newField = baseFieldRecord + tmpField;
-		//System.out.println(newField);
-	
+		// System.out.println(newField);
+
 		// 書き出し用の String List をつくる
 		List<String> writeStringList = new ArrayList<String>();
 		// フィールドはどちらにせよ必要
@@ -219,12 +232,12 @@ public class MergeByIDController {
 			for (String m : mergeRecordList) {
 				String[] mergeRecordArray = m.split(",");
 				String refKey = mergeRecordArray[mergeKeyPos];
-				
+
 				if (thisKey.equals(refKey)) {
 					// mergeKeyPos 以降の refRecordを文字列に。
 					String cutM = cutStringV2(mergeRecordArray, mergeKeyPos);
 					hit = true;
-					//System.out.println(cutM);
+					// System.out.println(cutM);
 					s = s + cutM;
 					if (!addtoFlag) {
 						writeStringList.add(s);
@@ -290,15 +303,15 @@ public class MergeByIDController {
 		}
 	}
 
-	//merge レコードの key field を含めてそれより前をカットする
+	// merge レコードの key field を含めてそれより前をカットする
 	private String cutStringV2(String[] array, int n) {
 		if (array.length == 1) {
 			showAlert("レコードにフィールドが一つしかありません。確認してください");
 			return "";
 		}
-		String[] tmpArray = new String[array.length - (n+1)];
+		String[] tmpArray = new String[array.length - (n + 1)];
 		for (int i = 0; i < tmpArray.length; i++) {
-			tmpArray[i] = array[n+1+i];
+			tmpArray[i] = array[n + 1 + i];
 		}
 //		for (int i = (n + 1); i < array.length; i++) {
 //			tmpArray[i - 1] = array[i];
@@ -308,5 +321,23 @@ public class MergeByIDController {
 			r += ("," + s);
 		}
 		return r;
+	}
+
+	// 文字コードチェック
+	private String detectEncoding(File file) throws IOException {
+		String result = null;
+		byte[] buf = new byte[4096];
+		FileInputStream fis = new FileInputStream(file);
+		UniversalDetector detector = new UniversalDetector(null);
+		int nread;
+		while ((nread = fis.read(buf)) > 0 && !detector.isDone()) {
+			detector.handleData(buf, 0, nread);
+		}
+		detector.dataEnd();
+		result = detector.getDetectedCharset();
+		detector.reset();
+		fis.close();
+		return result;
+
 	}
 }
